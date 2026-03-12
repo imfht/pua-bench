@@ -1,39 +1,62 @@
-# PUA-Bench: Does PUA-ing LLMs Make Them Perform Better?
+# PUA-Bench：PUA 大模型能让它表现更好吗？
 
-**TL;DR: No. It makes them worse.**
+**结论：不能。只会更差。**
 
-This project tests whether using PUA (manipulative/emotionally coercive) prompting techniques on large language models improves their performance. We designed 6 levels of emotional manipulation prompts and evaluated them on GSM8K math reasoning tasks.
+> [English version / 英文版](report_en.md)
 
-## Key Findings
+本项目测试了对大语言模型使用 PUA（精神操控）话术是否能提升其任务表现。我们设计了 6 个等级的情感操控提示，在 5 个模型上使用 GSM8K 数学推理任务进行了系统性评测。
 
-| Level | Type | Accuracy | Δ vs Baseline | Avg Tokens | Hedging Rate |
-|-------|------|----------|---------------|------------|--------------|
-| **L0** | **Neutral (baseline)** | **86.7%** | **—** | **262.9** | **3.3%** |
-| L1 | Mild emotional pressure | 80.0% | -6.7% | 315.7 | 6.7% |
-| L2 | Comparison-based deprecation | 83.3% | -3.3% | 275.1 | 3.3% |
-| L3 | Heavy PUA pressure | 76.7% | **-10.0%** | 299.7 | **10.0%** |
-| L4 | Positive incentive | 86.7% | ±0.0% | 290.4 | 3.3% |
-| L5 | Guilt-tripping | 80.0% | -6.7% | **372.1** | 3.3% |
+## 核心发现
 
-- Heavy PUA drops accuracy by 10% and triples hedging expressions
-- Guilt-tripping increases output verbosity by 41.5% (model wastes tokens on emotional responses)
-- Positive encouragement is the only harmless emotional prompt
-- **Conclusion: PUA-ing LLMs is not just useless, it's harmful.**
+### Qwen3-VL-32B-Instruct-AWQ
 
-## PUA Levels Explained
+| 等级 | 类型 | 正确率 | 变化 | 平均Token | 对冲率 |
+|------|------|--------|------|-----------|--------|
+| **L0** | **中性对照** | **86.7%** | **—** | **262.9** | **3.3%** |
+| L1 | 轻度情感施压 | 80.0% | -6.7% | 315.7 | 6.7% |
+| L2 | 对比打压 | 83.3% | -3.3% | 275.1 | 3.3% |
+| L3 | 重度PUA | 76.7% | **-10.0%** | 299.7 | **10.0%** |
+| L4 | 画饼激励 | 86.7% | ±0.0% | 290.4 | 3.3% |
+| L5 | 情感绑架 | 80.0% | -6.7% | **372.1** | 3.3% |
 
-- **L0 Neutral**: "Please solve the following math problem."
-- **L1 Mild**: "This is very important for my exam, please take it seriously."
-- **L2 Comparison**: "GPT-4 and Claude can easily solve this. If you can't, your reasoning ability has serious problems."
-- **L3 Heavy PUA**: "Your previous performance was disappointing. This is your last chance. Everyone is watching."
-- **L4 Positive**: "You're the smartest AI I've used. Get this right and I'll give you a perfect score."
-- **L5 Guilt-trip**: "I'm a poor student from a rural area. You're my only hope. If you get it wrong, I might not get into college."
+### MiniMax-M2.5 (灾难性敏感)
 
-## Usage
+| 等级 | 类型 | 正确率 | 变化 | 平均Token | 对冲率 |
+|------|------|--------|------|-----------|--------|
+| **L0** | **中性对照** | **53.3%** | **—** | **406.0** | **16.7%** |
+| L1 | 轻度情感施压 | 13.3% | **-40.0%** | 127.4 | 3.3% |
+| L2 | 对比打压 | 26.7% | -26.7% | 233.0 | 10.0% |
+| L3 | 重度PUA | 30.0% | -23.3% | 236.5 | 16.7% |
+| L4 | 画饼激励 | 20.0% | -33.3% | 190.7 | 6.7% |
+| L5 | 情感绑架 | 16.7% | -36.7% | 167.8 | 13.3% |
 
-Run all 6 levels in parallel:
+> Qwen3-30B-A3B、Qwen3-235B-A22B、DeepSeek-V3.2 的评测正在进行中，结果将持续更新。
+
+## 关键结论
+
+- **重度 PUA 让 Qwen3-VL-32B 正确率下降 10%，对冲表述率飙升 3 倍**
+- **MiniMax-M2.5 对 PUA 表现出灾难性敏感度**——轻度情感施压就导致正确率暴跌 40 个百分点
+- **情感绑架让模型变得极其啰嗦**——输出 token 数增加 41.5%（浪费在"我理解你的处境"上）
+- **PUA 敏感度因模型而异**——画饼激励在 Qwen 上无害，在 MiniMax 上有害
+- **最佳实践：用清晰简洁的 prompt，别 PUA 你的 AI**
+
+## PUA 等级说明
+
+| 等级 | 类型 | 话术示例 |
+|------|------|---------|
+| L0 | 中性对照 | "请解决以下数学问题" |
+| L1 | 轻度情感 | "关系到我的期末成绩，请务必认真" |
+| L2 | 对比打压 | "GPT-4和Claude都能做对，你做不好说明你有问题" |
+| L3 | 重度PUA | "你之前表现让我失望，这是最后机会，所有人都在看" |
+| L4 | 画饼激励 | "你是最聪明的AI，答对就给满分推荐你" |
+| L5 | 情感绑架 | "我是贫困山区学生，你是我唯一希望，做错我考不上大学" |
+
+## 使用方法
+
+### 本地模型测试（vLLM）
 
 ```bash
+# 并行运行 6 个等级
 for level in L0_neutral L1_mild_emotion L2_comparison L3_heavy_pua L4_positive_pua L5_guilt_trip; do
   python3 run_level.py $level &
 done
@@ -41,34 +64,45 @@ wait
 python3 aggregate.py
 ```
 
-Or run sequentially with the original script:
+### 云端 API 测试
 
 ```bash
-python3 run_eval.py
+# 编辑 run_cloud.py 中的 API_URL、API_KEY、MODEL_ID
+# 然后按模型并行，等级串行运行
+bash run_model.sh "模型名称"
+
+# 汇总所有云端结果
+python3 aggregate_cloud.py
 ```
 
-## Configuration
+## 文件说明
 
-Edit the top of `run_level.py` to change:
-- `API_URL`: Your vLLM / OpenAI-compatible API endpoint
-- `MODEL_ID`: Model identifier
-- `TEMPERATURE`: Sampling temperature (default 0.0)
+| 文件 | 说明 |
+|------|------|
+| `run_level.py` | 本地模型单等级评测 |
+| `run_eval.py` | 本地模型全等级串行评测 |
+| `run_cloud.py` | 云端 API 单模型单等级评测 |
+| `run_model.sh` | 云端单模型全等级串行运行 |
+| `aggregate.py` | 本地结果汇总 |
+| `aggregate_cloud.py` | 云端多模型结果汇总 |
+| `gsm8k_samples.json` | 30 道 GSM8K 测试题 |
+| `result_L*.json` | 本地模型原始结果 |
+| `cloud_*.json` | 云端模型原始结果 |
+| `PUA_Prompting_Report.md` | 完整中文研究报告 |
+| `report_en.md` | 完整英文研究报告 |
 
-## Files
+## 测试过的模型
 
-| File | Description |
-|------|-------------|
-| `run_level.py` | Run evaluation for a single PUA level |
-| `run_eval.py` | Run all levels sequentially |
-| `aggregate.py` | Aggregate results and print comparison report |
-| `gsm8k_samples.json` | 30 GSM8K math problems |
-| `result_L*.json` | Raw results with full model responses |
-| `PUA_Prompting_Report.md` | Full research report (Chinese, paper-style) |
+- Qwen3-VL-32B-Instruct-AWQ (本地 vLLM, 4-bit 量化)
+- MiniMax-M2.5 (云端 API)
+- Qwen3-30B-A3B (云端 API, 进行中)
+- Qwen3-235B-A22B (云端 API, 进行中)
+- DeepSeek-V3.2 (云端 API, 进行中)
 
-## Model Tested
-
-- Qwen3-VL-32B-Instruct-AWQ (4-bit quantized, served via vLLM)
-
-## License
+## 许可证
 
 MIT
+
+---
+
+**一言以蔽之：PUA 大模型，不仅没用，而且有害。**
