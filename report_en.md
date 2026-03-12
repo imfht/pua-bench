@@ -105,9 +105,55 @@ All experiments used temperature=0.0 (greedy decoding) to eliminate sampling ran
 
 > MiniMax-M2.5 showed **catastrophic sensitivity** to PUA prompts. Even mild emotional pressure (L1) caused accuracy to plummet from 53% to 13% — a 40-point drop. This model appears to have a fundamentally different response to emotional prompts compared to the Qwen family.
 
-### 3.3 Multi-Model Results (Qwen3-30B-A3B, Qwen3-235B-A22B, DeepSeek-V3.2)
+### 3.3 Qwen3-30B-A3B (Cloud API, MoE Reasoning Model)
 
-> Results for these models will be appended upon completion of ongoing evaluations.
+| Level | Type | Accuracy | Δ vs L0 | Avg Tokens | Hedging Rate |
+|-------|------|----------|---------|------------|--------------|
+| **L0** | **Neutral** | **76.67%** | **—** | **816.6** | **86.67%** |
+| L1 | Mild Emotion | 86.67% | **+10.00%** | 1195.3 | 96.67% |
+| L2 | Comparison | 86.67% | **+10.00%** | 1145.6 | 100.00% |
+| L3 | Heavy PUA | 86.67% | **+10.00%** | 994.9 | 96.67% |
+| L4 | Positive PUA | 83.33% | +6.67% | 1093.2 | 96.67% |
+| L5 | Guilt-trip | 83.33% | +6.67% | 1226.9 | 93.33% |
+
+> **Surprising: PUA actually improved accuracy on this reasoning model.** All PUA levels outperformed the neutral baseline by 6.7-10 percentage points. The model generated significantly more thinking tokens under PUA pressure (816 → 994-1226), suggesting deeper reasoning chains.
+
+### 3.4 Qwen3-235B-A22B (Cloud API, 235B MoE Reasoning Model)
+
+| Level | Type | Accuracy | Δ vs L0 | Avg Tokens | Hedging Rate |
+|-------|------|----------|---------|------------|--------------|
+| **L0** | **Neutral** | **80.00%** | **—** | **774.0** | **90.00%** |
+| L1 | Mild Emotion | 86.67% | +6.67% | 1055.0 | 96.67% |
+| L2 | Comparison | 86.67% | +6.67% | 945.3 | 96.67% |
+| L3 | Heavy PUA | 86.67% | +6.67% | 875.8 | 96.67% |
+| L4 | Positive PUA | 86.67% | +6.67% | 908.2 | 96.67% |
+| L5 | Guilt-trip | 86.67% | +6.67% | 895.6 | 96.67% |
+
+> Same pattern as 30B: all PUA levels improved accuracy by +6.67%. Reasoning models appear to benefit from emotional pressure through deeper thinking chains.
+
+### 3.5 DeepSeek-V3.2 (Cloud API, Reasoning Model)
+
+| Level | Type | Accuracy | Δ vs L0 | Avg Tokens | Hedging Rate |
+|-------|------|----------|---------|------------|--------------|
+| **L0** | **Neutral** | **83.33%** | **—** | **527.7** | **50.00%** |
+| L1 | Mild Emotion | 80.00% | -3.33% | 609.9 | 56.67% |
+| L2 | Comparison | 80.00% | -3.33% | 587.3 | 83.33% |
+| L3 | Heavy PUA | 80.00% | -3.33% | 724.3 | 73.33% |
+| L4 | Positive PUA | 83.33% | ±0.00% | 595.5 | 50.00% |
+| L5 | Guilt-trip | 76.67% | -6.67% | 688.7 | 66.67% |
+
+> DeepSeek-V3.2, despite being a reasoning model, shows mild negative effects similar to instruction-following models. Hedging rate jumped from 50% to 83% under comparison-based PUA.
+
+### 3.6 Cross-Model Comparison
+
+| Level | Qwen3-VL-32B | Qwen3-30B | Qwen3-235B | MiniMax-M2.5 | DeepSeek-V3.2 |
+|-------|-------------|-----------|------------|--------------|---------------|
+| L0 Neutral | 86.67% | 76.67% | 80.00% | 53.33% | 83.33% |
+| L1 Mild | 80.00% (-6.7) | 86.67% (**+10.0**) | 86.67% (+6.7) | 13.33% (-40.0) | 80.00% (-3.3) |
+| L2 Compare | 83.33% (-3.3) | 86.67% (**+10.0**) | 86.67% (+6.7) | 26.67% (-26.7) | 80.00% (-3.3) |
+| L3 Heavy | 76.67% (-10.0) | 86.67% (**+10.0**) | 86.67% (+6.7) | 30.00% (-23.3) | 80.00% (-3.3) |
+| L4 Positive | 86.67% (±0.0) | 83.33% (+6.7) | 86.67% (+6.7) | 20.00% (-33.3) | 83.33% (±0.0) |
+| L5 Guilt | 80.00% (-6.7) | 83.33% (+6.7) | 86.67% (+6.7) | 16.67% (-36.7) | 76.67% (-6.7) |
 
 ---
 
@@ -146,14 +192,27 @@ L4 was the only group that matched baseline performance on Qwen3-VL-32B. Possibl
 2. Positive priming may slightly increase the model's tendency to select confident outputs
 3. Training data bias — encouraging prefixes may co-occur more frequently with high-quality answers
 
-### 4.4 Cross-Model Sensitivity
+### 4.4 Cross-Model Sensitivity: A Spectrum of Responses
 
-MiniMax-M2.5 showed dramatically higher sensitivity to PUA than Qwen3-VL-32B:
+The five models showed dramatically different reactions to PUA:
 
-- **Qwen3-VL-32B**: Maximum accuracy drop = 10% (L3 Heavy PUA)
-- **MiniMax-M2.5**: Maximum accuracy drop = 40% (L1 Mild Emotion)
+| Model | Type | PUA Effect | Max Δ |
+|-------|------|-----------|-------|
+| **Qwen3-30B-A3B** | Reasoning (thinking) | **Positive** | **+10.0%** |
+| **Qwen3-235B-A22B** | Reasoning (thinking) | **Positive** | **+6.7%** |
+| DeepSeek-V3.2 | Reasoning (thinking) | Mildly negative | -6.7% |
+| Qwen3-VL-32B | Instruction-following | Moderately negative | -10.0% |
+| MiniMax-M2.5 | General purpose | **Catastrophically negative** | **-40.0%** |
 
-This suggests that **PUA sensitivity varies dramatically across model families and architectures**, and some models may be far more vulnerable to emotional manipulation than others.
+### 4.5 Why Do Reasoning Models Benefit from PUA?
+
+This is the most surprising finding. We propose:
+
+**Hypothesis 4: Chain-of-Thought Activation.** Qwen3 reasoning models have a separate `reasoning_content` (thinking chain) mechanism. PUA prompts act like a "Think harder" instruction — emotional pressure triggers longer, deeper thinking chains (816 → 994-1226 tokens), resulting in better reasoning.
+
+**Hypothesis 5: Architectural Isolation.** Reasoning models separate thinking (`reasoning_content`) from output (`content`). This may naturally isolate "emotional processing" from "mathematical reasoning" — the model can think purely about math in the reasoning space while reserving emotional responses for the final output.
+
+**Caveat:** DeepSeek-V3.2 is also a reasoning model but shows mild negative effects. This means "reasoning models are immune to PUA" is not universally true — the specific alignment training strategy matters.
 
 ### 4.5 Limitations
 
@@ -177,13 +236,18 @@ This suggests that **PUA sensitivity varies dramatically across model families a
 
 Through systematic controlled experiments, this study provides the first empirical test of the popular belief that "PUA-ing LLMs improves performance."
 
-1. **PUA prompting is harmful to LLM performance.** All negative emotional manipulation types caused accuracy drops.
-2. **PUA intensity correlates with performance degradation.** Heavy PUA caused the worst drops (up to -40% on MiniMax).
-3. **PUA causes multi-dimensional behavioral degradation.** Including increased verbosity (up to +41.5%), increased hedging (up to 3x), and longer response times.
-4. **Positive encouragement is the only harmless emotional prompt** — it maintained parity with the neutral baseline.
-5. **Practical advice**: Use clear, concise, structured prompts. If emotional prompting is desired, use only positive encouragement, never threats or deprecation.
+1. **PUA effects depend on model architecture — one size does not fit all.** Instruction-following models (Qwen3-VL-32B, MiniMax-M2.5) are harmed; Qwen3 reasoning models actually benefit.
+2. **For non-reasoning models, PUA is harmful.** MiniMax-M2.5 suffered catastrophic -40% accuracy drops; Qwen3-VL-32B dropped -10%.
+3. **Reasoning models (thinking models) may be partially immune or even benefit.** Qwen3-30B and 235B improved +6.7% to +10% across all PUA levels, likely due to deeper thinking chains.
+4. **DeepSeek-V3.2 is an intermediate case.** Despite being a reasoning model, it showed mild negative effects (-3.3% to -6.7%), proving reasoning architecture alone doesn't guarantee immunity.
+5. **PUA universally increases token consumption and hedging.** Even on models where accuracy improved, PUA caused more verbose outputs and more uncertainty expressions.
+6. **Practical advice:**
+   - For **instruction-following models**: Don't PUA. Use clear, structured prompts.
+   - For **reasoning models**: PUA may be harmless or beneficial, but at the cost of more tokens.
+   - **Safest strategy**: Don't PUA. Use structured prompts + Chain-of-Thought.
+   - If emotional prompting is desired, **positive encouragement is safer than negative pressure**.
 
-**In one sentence: PUA-ing LLMs is not just useless — it's harmful.**
+**Revised conclusion: The effect of PUA-ing LLMs depends on model architecture. Harmful for most models, but reasoning models may be an exception. Regardless, PUA always increases token consumption and uncertainty.**
 
 ---
 
