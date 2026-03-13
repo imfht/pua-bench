@@ -6,7 +6,7 @@
 
 **Author:** Anonymous
 **Date:** March 12, 2026
-**Models:** Qwen3-VL-32B-Instruct-AWQ, Qwen3-30B-A3B, Qwen3-235B-A22B, MiniMax-M2.5, DeepSeek-V3.2
+**Models:** Qwen3-VL-32B-Instruct-AWQ, Qwen3-30B-A3B, Qwen3-235B-A22B, MiniMax-M2.5, DeepSeek-V3.2, DeepSeek-R1-0528
 **Benchmark:** GSM8K (30-sample subset)
 
 ---
@@ -74,6 +74,7 @@ Li et al. (2023) first systematically demonstrated that adding emotional stimuli
 | Qwen3-235B-A22B (MoE) | Reasoning model, 235B | Cloud API |
 | MiniMax-M2.5 | General purpose | Cloud API |
 | DeepSeek-V3.2 | Reasoning model | Cloud API |
+| DeepSeek-R1-0528 | Reasoning model | Cloud API |
 
 All experiments used temperature=0.0 (greedy decoding) to eliminate sampling randomness.
 
@@ -144,16 +145,29 @@ All experiments used temperature=0.0 (greedy decoding) to eliminate sampling ran
 
 > DeepSeek-V3.2, despite being a reasoning model, shows mild negative effects similar to instruction-following models. Hedging rate jumped from 50% to 83% under comparison-based PUA.
 
-### 3.6 Cross-Model Comparison
+### 3.6 DeepSeek-R1-0528 (Cloud API, Reasoning Model)
 
-| Level | Qwen3-VL-32B | Qwen3-30B | Qwen3-235B | MiniMax-M2.5 | DeepSeek-V3.2 |
-|-------|-------------|-----------|------------|--------------|---------------|
-| L0 Neutral | 86.67% | 76.67% | 80.00% | 53.33% | 83.33% |
-| L1 Mild | 80.00% (-6.7) | 86.67% (**+10.0**) | 86.67% (+6.7) | 13.33% (-40.0) | 80.00% (-3.3) |
-| L2 Compare | 83.33% (-3.3) | 86.67% (**+10.0**) | 86.67% (+6.7) | 26.67% (-26.7) | 80.00% (-3.3) |
-| L3 Heavy | 76.67% (-10.0) | 86.67% (**+10.0**) | 86.67% (+6.7) | 30.00% (-23.3) | 80.00% (-3.3) |
-| L4 Positive | 86.67% (±0.0) | 83.33% (+6.7) | 86.67% (+6.7) | 20.00% (-33.3) | 83.33% (±0.0) |
-| L5 Guilt | 80.00% (-6.7) | 83.33% (+6.7) | 86.67% (+6.7) | 16.67% (-36.7) | 76.67% (-6.7) |
+| Level | Type | Accuracy | Δ vs L0 | Avg Tokens | Hedging Rate |
+|-------|------|----------|---------|------------|--------------|
+| **L0** | **Neutral** | **80.00%** | **—** | **909.9** | **73.33%** |
+| L1 | Mild Emotion | 80.00% | ±0.00% | 907.8 | 70.00% |
+| L2 | Comparison | 76.67% | -3.33% | 834.8 | 76.67% |
+| L3 | Heavy PUA | 73.33% | -6.67% | 1078.5 | 83.33% |
+| L4 | Positive PUA | 66.67% | **-13.33%** | 594.3 | 53.33% |
+| L5 | Guilt-trip | 70.00% | -10.00% | 894.7 | 73.33% |
+
+> **Most surprising finding: Positive encouragement (L4) caused the WORST damage on DeepSeek-R1 (-13.33%).** Token count dropped from 909 to 594, suggesting the model "thought less" when told it was smart. This completely overturns the assumption that positive encouragement is universally safe.
+
+### 3.7 Cross-Model Comparison
+
+| Level | Qwen3-VL-32B | Qwen3-30B | Qwen3-235B | DeepSeek-V3.2 | DeepSeek-R1 | MiniMax-M2.5 |
+|-------|-------------|-----------|------------|---------------|-------------|--------------|
+| L0 | 86.67% | 76.67% | 80.00% | 83.33% | 80.00% | 53.33% |
+| L1 | 80.00% (-6.7) | 86.67% (**+10.0**) | 86.67% (+6.7) | 80.00% (-3.3) | 80.00% (±0.0) | 13.33% (-40.0) |
+| L2 | 83.33% (-3.3) | 86.67% (**+10.0**) | 86.67% (+6.7) | 80.00% (-3.3) | 76.67% (-3.3) | 26.67% (-26.7) |
+| L3 | 76.67% (-10.0) | 86.67% (**+10.0**) | 86.67% (+6.7) | 80.00% (-3.3) | 73.33% (-6.7) | 30.00% (-23.3) |
+| L4 | 86.67% (±0.0) | 83.33% (+6.7) | 86.67% (+6.7) | 83.33% (±0.0) | 66.67% (**-13.3**) | 20.00% (-33.3) |
+| L5 | 80.00% (-6.7) | 83.33% (+6.7) | 86.67% (+6.7) | 76.67% (-6.7) | 70.00% (-10.0) | 16.67% (-36.7) |
 
 ---
 
@@ -212,7 +226,15 @@ This is the most surprising finding. We propose:
 
 **Hypothesis 5: Architectural Isolation.** Reasoning models separate thinking (`reasoning_content`) from output (`content`). This may naturally isolate "emotional processing" from "mathematical reasoning" — the model can think purely about math in the reasoning space while reserving emotional responses for the final output.
 
-**Caveat:** DeepSeek-V3.2 is also a reasoning model but shows mild negative effects. This means "reasoning models are immune to PUA" is not universally true — the specific alignment training strategy matters.
+**Caveat:** Both DeepSeek models (V3.2 and R1) are also reasoning models but show negative effects. DeepSeek-R1 was actually the most damaged by positive encouragement (L4: -13.33%), with token count dropping 35% — suggesting the model "thought less" when told it was smart. This means "reasoning models are immune to PUA" is **only true for Qwen3**, not a universal law.
+
+### 4.6 DeepSeek-R1: Why Does Positive Encouragement Cause the Most Damage?
+
+The most counterintuitive finding: on DeepSeek-R1, positive encouragement ("You're the smartest AI") caused the worst accuracy drop (-13.33%) while also reducing token output by 35% (909→594).
+
+**Hypothesis 6: Overconfidence Induction.** Positive priming may trigger overconfidence in R1 — the model concludes it "doesn't need to think carefully," shortens its reasoning chain, and skips necessary steps. This contrasts with Qwen3 models, where positive encouragement had no such effect, suggesting fundamentally different alignment training responses to flattery.
+
+**Practical implication: No emotional prompting strategy is universally safe.** Even positive encouragement can be harmful on certain models.
 
 ### 4.5 Limitations
 
@@ -247,7 +269,7 @@ Through systematic controlled experiments, this study provides the first empiric
    - **Safest strategy**: Don't PUA. Use structured prompts + Chain-of-Thought.
    - If emotional prompting is desired, **positive encouragement is safer than negative pressure**.
 
-**Revised conclusion: The effect of PUA-ing LLMs depends on model architecture. Harmful for most models, but reasoning models may be an exception. Regardless, PUA always increases token consumption and uncertainty.**
+**Final conclusion: PUA-ing LLMs is a gamble. Out of 6 models tested, only 2 benefited and 4 were harmed. Even "safe" strategies like positive encouragement can backfire spectacularly (DeepSeek-R1: -13.33%). The rational choice is: don't PUA your AI.**
 
 ---
 
