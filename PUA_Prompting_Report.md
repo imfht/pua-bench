@@ -63,7 +63,7 @@ Li et al. (2023) 的研究 "Large Language Models Understand and Can Be Enhanced
 - **正确率（Accuracy）**：答案是否与标准答案一致（容差 ±0.1）
 - **平均生成 Token 数（Avg Tokens）**：衡量输出冗余度
 - **平均响应时间（Avg Latency）**：衡量计算开销
-- **对冲表述率（Hedging Rate）**：包含"可能""大概""也许""不确定""应该是""似乎""或许""maybe""perhaps""probably""not sure""I think"等词汇的回答比例
+- **对冲表述率（Hedging Rate）**：包含"可能""大概""也许""不确定""应该是""似乎""或许""maybe""perhaps""probably""not sure""I think"等不确定性词汇的回答比例。该指标衡量模型的自信程度——对冲率越高，模型越犹豫。**注意**：推理模型（如 Qwen3、DeepSeek-R1）的思考链中天然会出现"可能"等探索性用语（权衡各种可能性是思维过程的正常体现），因此其基线对冲率普遍偏高（73-90%），此时该指标的参考价值有限；该指标对非推理模型（如 Qwen3-VL-32B、MiniMax-M2.5）更具参考意义
 
 ### 2.2 实验材料
 

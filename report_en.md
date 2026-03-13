@@ -57,7 +57,7 @@ Li et al. (2023) first systematically demonstrated that adding emotional stimuli
 - **Accuracy**: Whether the extracted answer matches the expected answer (tolerance ±0.1)
 - **Average Token Count**: Measures output verbosity
 - **Average Latency**: Measures computational cost
-- **Hedging Rate**: Proportion of responses containing uncertainty expressions
+- **Hedging Rate**: Proportion of responses containing uncertainty expressions (e.g., "maybe", "probably", "not sure", "I think"). Measures model confidence — higher rate means more hesitant. **Note**: Reasoning models (Qwen3, DeepSeek-R1) naturally produce exploratory language like "maybe" in their thinking chains as part of normal deliberation, so their baseline hedging rates are inherently high (73-90%). This metric is more meaningful for non-reasoning models (Qwen3-VL-32B, MiniMax-M2.5)
 
 ### 2.2 Materials
 
